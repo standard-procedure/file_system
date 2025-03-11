@@ -71,6 +71,39 @@ module FileSystem
         expect(folder.items).not_to include(deleted_item)
         expect(folder.items.count).to eq(1)
       end
+
+      it "preserves the join table record even when item is deleted or folder is deleted" do
+        folder = described_class.create!(name: "Test Folder", volume: volume)
+        item = Item.create!(volume: volume)
+        ItemRevision.create!(item: item, creator: user, contents: document, name: "Test Item")
+
+        # Add item to folder
+        folder.items << item
+
+        # Check that the association exists in the join table
+        join_table_count = ActiveRecord::Base.connection.execute(
+          "SELECT COUNT(*) FROM file_system_folders_items WHERE file_system_folder_id = #{folder.id} AND file_system_item_id = #{item.id}"
+        ).first["COUNT(*)"]
+        expect(join_table_count).to eq(1)
+
+        # Mark item as deleted
+        item.deleted!
+
+        # Association record should still exist even though the item is inactive
+        join_table_count = ActiveRecord::Base.connection.execute(
+          "SELECT COUNT(*) FROM file_system_folders_items WHERE file_system_folder_id = #{folder.id} AND file_system_item_id = #{item.id}"
+        ).first["COUNT(*)"]
+        expect(join_table_count).to eq(1)
+
+        # Mark folder as deleted
+        folder.deleted!
+
+        # Association record should still exist even though both are inactive
+        join_table_count = ActiveRecord::Base.connection.execute(
+          "SELECT COUNT(*) FROM file_system_folders_items WHERE file_system_folder_id = #{folder.id} AND file_system_item_id = #{item.id}"
+        ).first["COUNT(*)"]
+        expect(join_table_count).to eq(1)
+      end
     end
 
     describe "validations" do
