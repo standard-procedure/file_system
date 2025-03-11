@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_12_100000) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_12_200002) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -54,6 +54,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_12_100000) do
     t.text "content", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "file_system_authorizations", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_file_system_authorizations_on_name", unique: true
   end
 
   create_table "file_system_comments", force: :cascade do |t|
@@ -111,6 +119,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_12_100000) do
     t.index ["volume_id"], name: "index_file_system_items_on_volume_id"
   end
 
+  create_table "file_system_permission_authorizations", force: :cascade do |t|
+    t.integer "permission_id"
+    t.integer "authorization_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["authorization_id"], name: "idx_on_authorization_id_a81a7e458b"
+    t.index ["permission_id", "authorization_id"], name: "index_fs_permission_auths_on_permission_and_auth", unique: true
+    t.index ["permission_id"], name: "index_file_system_permission_authorizations_on_permission_id"
+  end
+
+  create_table "file_system_permissions", force: :cascade do |t|
+    t.integer "folder_id"
+    t.string "subject_type"
+    t.integer "subject_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id", "subject_id", "subject_type"], name: "index_fs_permissions_on_folder_and_subject", unique: true
+    t.index ["folder_id"], name: "index_file_system_permissions_on_folder_id"
+    t.index ["subject_type", "subject_id"], name: "index_file_system_permissions_on_subject"
+  end
+
   create_table "file_system_volumes", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.integer "status", default: 0, null: false
@@ -135,4 +164,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_12_100000) do
   add_foreign_key "file_system_folders_items", "file_system_items"
   add_foreign_key "file_system_item_revisions", "file_system_items", column: "item_id"
   add_foreign_key "file_system_items", "file_system_volumes", column: "volume_id"
+  add_foreign_key "file_system_permission_authorizations", "file_system_authorizations", column: "authorization_id"
+  add_foreign_key "file_system_permission_authorizations", "file_system_permissions", column: "permission_id"
+  add_foreign_key "file_system_permissions", "file_system_folders", column: "folder_id"
 end
