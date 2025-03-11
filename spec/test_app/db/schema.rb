@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_12_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_12_100000) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -54,6 +54,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_12_000000) do
     t.text "content", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "file_system_comments", force: :cascade do |t|
+    t.integer "item_revision_id"
+    t.string "creator_type"
+    t.integer "creator_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["creator_type", "creator_id"], name: "index_file_system_comments_on_creator"
+    t.index ["item_revision_id"], name: "index_file_system_comments_on_item_revision_id"
   end
 
   create_table "file_system_folders", force: :cascade do |t|
@@ -118,6 +128,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_12_000000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "file_system_comments", "file_system_item_revisions", column: "item_revision_id"
   add_foreign_key "file_system_folders", "file_system_folders", column: "parent_id"
   add_foreign_key "file_system_folders", "file_system_volumes", column: "volume_id"
   add_foreign_key "file_system_folders_items", "file_system_folders"

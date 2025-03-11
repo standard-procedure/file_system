@@ -75,26 +75,26 @@ module FileSystem
         expect(item.folders).not_to include(deleted_folder)
         expect(item.folders.count).to eq(1)
       end
-      
+
       it "has many comments through revisions" do
         item = described_class.create!(volume: volume)
         revision1 = ItemRevision.create!(item: item, creator: user, contents: document, name: "Revision 1")
         revision2 = ItemRevision.create!(item: item, creator: user, contents: document, name: "Revision 2")
-        
+
         comment1 = Comment.create!(item_revision: revision1, creator: user, message: "Comment on revision 1")
         comment2 = Comment.create!(item_revision: revision2, creator: user, message: "Comment on revision 2")
-        
+
         expect(item.comments).to include(comment1, comment2)
       end
-      
+
       it "gets comments in the correct order (newest first)" do
         item = described_class.create!(volume: volume)
         revision = ItemRevision.create!(item: item, creator: user, contents: document, name: "Test Revision")
-        
+
         older_comment = Comment.create!(item_revision: revision, creator: user, message: "Older comment")
         sleep(0.1)
         newer_comment = Comment.create!(item_revision: revision, creator: user, message: "Newer comment")
-        
+
         expect(item.comments.first).to eq(newer_comment)
         expect(item.comments.last).to eq(older_comment)
       end
