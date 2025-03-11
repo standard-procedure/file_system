@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_11_211519) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_12_000000) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -49,6 +49,79 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_11_211519) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "documents", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "file_system_folders", force: :cascade do |t|
+    t.integer "volume_id"
+    t.integer "parent_id"
+    t.string "name", default: "", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parent_id"], name: "index_file_system_folders_on_parent_id"
+    t.index ["volume_id", "parent_id", "status", "name"], name: "idx_on_volume_id_parent_id_status_name_eb6d58b8ec", unique: true
+    t.index ["volume_id"], name: "index_file_system_folders_on_volume_id"
+  end
+
+  create_table "file_system_folders_items", id: false, force: :cascade do |t|
+    t.integer "file_system_folder_id", null: false
+    t.integer "file_system_item_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["file_system_folder_id", "file_system_item_id"], name: "index_folders_items_on_folder_id_and_item_id", unique: true
+    t.index ["file_system_item_id", "file_system_folder_id"], name: "index_folders_items_on_item_id_and_folder_id"
+  end
+
+  create_table "file_system_item_revisions", force: :cascade do |t|
+    t.integer "item_id"
+    t.string "creator_type"
+    t.integer "creator_id"
+    t.string "contents_type"
+    t.integer "contents_id"
+    t.string "name", default: "", null: false
+    t.integer "number", null: false
+    t.text "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contents_type", "contents_id"], name: "index_file_system_item_revisions_on_contents"
+    t.index ["creator_type", "creator_id"], name: "index_file_system_item_revisions_on_creator"
+    t.index ["item_id"], name: "index_file_system_item_revisions_on_item_id"
+  end
+
+  create_table "file_system_items", force: :cascade do |t|
+    t.integer "volume_id"
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["volume_id"], name: "index_file_system_items_on_volume_id"
+  end
+
+  create_table "file_system_volumes", force: :cascade do |t|
+    t.string "name", default: "", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_file_system_volumes_on_name", unique: true
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "email"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "file_system_folders", "file_system_folders", column: "parent_id"
+  add_foreign_key "file_system_folders", "file_system_volumes", column: "volume_id"
+  add_foreign_key "file_system_folders_items", "file_system_folders"
+  add_foreign_key "file_system_folders_items", "file_system_items"
+  add_foreign_key "file_system_item_revisions", "file_system_items", column: "item_id"
+  add_foreign_key "file_system_items", "file_system_volumes", column: "volume_id"
 end
