@@ -3,6 +3,8 @@ require "rails_helper"
 module FileSystem
   RSpec.describe Folder, type: :model do
     let(:volume) { Volume.create!(name: "Test Volume") }
+    let(:user) { User.create!(name: "Test User", email: "test@example.com") }
+    let(:document) { Document.create!(title: "Test Document", content: "Test Content") }
 
     describe "associations" do
       it "belongs to a volume" do
@@ -30,6 +32,44 @@ module FileSystem
         described_class.create!(name: "Child", volume: volume, parent: parent)
 
         expect { parent.destroy }.to change(described_class, :count).by(-2)
+      end
+
+      it "can have multiple items" do
+        folder = described_class.create!(name: "Test Folder", volume: volume)
+        item1 = Item.create!(volume: volume)
+        item2 = Item.create!(volume: volume)
+
+        # Create revisions for the items
+        ItemRevision.create!(item: item1, creator: user, contents: document, name: "Item 1")
+        ItemRevision.create!(item: item2, creator: user, contents: document, name: "Item 2")
+
+        # Add items to folder
+        folder.items << item1
+        folder.items << item2
+
+        expect(folder.items.count).to eq(2)
+        expect(folder.items).to include(item1, item2)
+      end
+
+      it "only includes active items in the items association" do
+        folder = described_class.create!(name: "Test Folder", volume: volume)
+        active_item = Item.create!(volume: volume)
+        deleted_item = Item.create!(volume: volume)
+
+        # Create revisions for the items
+        ItemRevision.create!(item: active_item, creator: user, contents: document, name: "Active Item")
+        ItemRevision.create!(item: deleted_item, creator: user, contents: document, name: "Deleted Item")
+
+        # Add items to folder
+        folder.items << active_item
+        folder.items << deleted_item
+
+        # Mark one item as deleted
+        deleted_item.deleted!
+
+        expect(folder.items).to include(active_item)
+        expect(folder.items).not_to include(deleted_item)
+        expect(folder.items.count).to eq(1)
       end
     end
 

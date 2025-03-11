@@ -41,6 +41,40 @@ module FileSystem
 
         expect { item.destroy }.to change(FileSystem::ItemRevision, :count).by(-1)
       end
+
+      it "can belong to multiple folders" do
+        item = described_class.create!(volume: volume)
+        ItemRevision.create!(item: item, creator: user, contents: document, name: "Test Item")
+
+        folder1 = Folder.create!(name: "Folder 1", volume: volume)
+        folder2 = Folder.create!(name: "Folder 2", volume: volume)
+
+        # Add the item to both folders
+        folder1.items << item
+        folder2.items << item
+
+        expect(item.folders.count).to eq(2)
+        expect(item.folders).to include(folder1, folder2)
+      end
+
+      it "only includes active folders in the folders association" do
+        item = described_class.create!(volume: volume)
+        ItemRevision.create!(item: item, creator: user, contents: document, name: "Test Item")
+
+        active_folder = Folder.create!(name: "Active Folder", volume: volume)
+        deleted_folder = Folder.create!(name: "Deleted Folder", volume: volume)
+
+        # Add the item to both folders
+        active_folder.items << item
+        deleted_folder.items << item
+
+        # Mark one folder as deleted
+        deleted_folder.deleted!
+
+        expect(item.folders).to include(active_folder)
+        expect(item.folders).not_to include(deleted_folder)
+        expect(item.folders.count).to eq(1)
+      end
     end
 
     describe "enums" do
