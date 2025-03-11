@@ -37,6 +37,33 @@ module FileSystem
         )
         expect(revision.contents).to eq(document)
       end
+      
+      it "has many comments" do
+        revision = described_class.create!(
+          item: item,
+          creator: user,
+          contents: document,
+          name: "Test Revision"
+        )
+        
+        comment1 = Comment.create!(item_revision: revision, creator: user, message: "Comment 1")
+        comment2 = Comment.create!(item_revision: revision, creator: user, message: "Comment 2")
+        
+        expect(revision.comments).to include(comment1, comment2)
+      end
+      
+      it "destroys associated comments when destroyed" do
+        revision = described_class.create!(
+          item: item,
+          creator: user,
+          contents: document,
+          name: "Test Revision"
+        )
+        
+        Comment.create!(item_revision: revision, creator: user, message: "Test comment")
+        
+        expect { revision.destroy }.to change(Comment, :count).by(-1)
+      end
     end
 
     describe "positioning" do

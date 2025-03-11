@@ -2,6 +2,7 @@ module FileSystem
   class Item < ApplicationRecord
     belongs_to :volume
     has_many :revisions, -> { order("number desc") }, class_name: "FileSystem::ItemRevision", dependent: :destroy
+    has_many :comments, through: :revisions
     has_and_belongs_to_many :folders, -> { active.order(:name) },
       join_table: "file_system_folders_items",
       foreign_key: "file_system_item_id",
