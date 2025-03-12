@@ -12,26 +12,22 @@ module FileSystem
 
     # Add authorizations by name
     def add_authorization(name)
-      auth = Authorization.find_or_create_by(name: name)
-      authorizations << auth unless authorizations.include?(auth)
+      Authorization.find_or_create_by(name: name).tap do |auth|
+        authorizations << auth unless authorizations.include?(auth)
+      end
     end
 
     # UK spelling alias
     alias_method :add_authorisation, :add_authorization
 
     # Check if permission has specific authorization
-    def has_authorization?(name)
-      authorizations.exists?(name: name)
-    end
+    def has_authorization?(name) = authorizations.exists?(name: name)
 
     # UK spelling alias
     alias_method :has_authorisation?, :has_authorization?
 
     # Remove an authorization
-    def remove_authorization(name)
-      auth = Authorization.find_by(name: name)
-      authorizations.delete(auth) if auth
-    end
+    def remove_authorization(name) = (auth = Authorization.find_by(name: name)).nil? ? nil : authorizations.delete(auth)
 
     # UK spelling alias
     alias_method :remove_authorisation, :remove_authorization

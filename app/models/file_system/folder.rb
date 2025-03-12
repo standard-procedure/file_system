@@ -24,54 +24,35 @@ module FileSystem
     has_many :_sub_folders, foreign_key: "parent_id", class_name: "FileSystem::Folder", dependent: :destroy
 
     # Find all folders visible to a subject (where a permission exists for that subject)
-    scope :visible_to, ->(subject) do
-      joins(:permissions)
-        .where(permissions: {subject_type: subject.class.name, subject_id: subject.id})
-        .distinct
-    end
+    scope :visible_to, ->(subject) { joins(:permissions).where(permissions: {subject_type: subject.class.name, subject_id: subject.id}).distinct }
 
     # Find all folders where a subject has a specific authorization
-    scope :authorized_for, ->(subject, auth_name) do
-      joins(permissions: {permission_authorizations: :authorization})
-        .where(permissions: {subject_type: subject.class.name, subject_id: subject.id})
-        .where(file_system_authorizations: {name: auth_name})
-        .distinct
-    end
+    scope :authorized_for, ->(subject, auth_name) { joins(permissions: {permission_authorizations: :authorization}).where(permissions: {subject_type: subject.class.name, subject_id: subject.id}).where(file_system_authorizations: {name: auth_name}).distinct }
 
     # UK spelling alias for scope
     singleton_class.send(:alias_method, :authorised_for, :authorized_for)
 
     # Check if a folder is accessible to a subject
-    def accessible_to?(subject)
-      permissions.exists?(subject: subject)
-    end
+    def accessible_to?(subject) = permissions.exists?(subject: subject)
 
     # Check if a folder grants a specific authorization to a subject
-    def authorized?(subject, auth_name)
-      permission = permissions.find_by(subject: subject)
-      permission&.has_authorization?(auth_name) || false
-    end
+    def authorized?(subject, auth_name) = permissions.find_by(subject: subject)&.has_authorization?(auth_name) || false
 
     # UK spelling alias
     alias_method :authorised?, :authorized?
 
     # Grant permission to a subject with optional authorizations
     def grant_access_to(subject, *auth_names)
-      permission = permissions.find_or_create_by(subject: subject)
-      auth_names.each { |name| permission.add_authorization(name) }
-      permission
+      permissions.find_or_create_by(subject: subject).tap do |permission|
+        auth_names.each { |name| permission.add_authorization(name) }
+      end
     end
 
     # Revoke all permissions from a subject
-    def revoke_access_from(subject)
-      permissions.where(subject: subject).destroy_all
-    end
+    def revoke_access_from(subject) = permissions.where(subject: subject).destroy_all
 
     # Revoke specific authorization from a subject
-    def revoke_authorization(subject, auth_name)
-      permission = permissions.find_by(subject: subject)
-      permission&.remove_authorization(auth_name)
-    end
+    def revoke_authorization(subject, auth_name) = permissions.find_by(subject: subject)&.remove_authorization(auth_name)
 
     # UK spelling alias
     alias_method :revoke_authorisation, :revoke_authorization
