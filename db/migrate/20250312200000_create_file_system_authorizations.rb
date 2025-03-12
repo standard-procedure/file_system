@@ -5,7 +5,7 @@ class CreateFileSystemAuthorizations < ActiveRecord::Migration[8.0]
       t.text :description
       t.timestamps
     end
-    
+
     add_index :file_system_authorizations, :name, unique: true
   end
 end

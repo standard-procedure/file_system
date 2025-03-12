@@ -34,5 +34,11 @@ module FileSystem
         expect(described_class::ADMIN).to eq("admin")
       end
     end
+
+    describe "UK spelling aliases" do
+      it "provides Authorisation as an alias for Authorization" do
+        expect(FileSystem::Authorisation).to eq(FileSystem::Authorization)
+      end
+    end
   end
 end

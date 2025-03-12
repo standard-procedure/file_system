@@ -98,5 +98,38 @@ module FileSystem
         }.not_to change { permission.authorizations.count }
       end
     end
+
+    describe "UK spelling aliases" do
+      let(:permission) { described_class.create!(folder: folder, subject: user) }
+
+      it "has authorisations alias for authorizations" do
+        permission.add_authorization("read")
+        expect(permission.authorisations).to eq(permission.authorizations)
+      end
+
+      it "has add_authorisation alias for add_authorization" do
+        expect {
+          permission.add_authorisation("write")
+        }.to change { permission.authorizations.count }.by(1)
+
+        expect(permission.has_authorization?("write")).to be true
+      end
+
+      it "has has_authorisation? alias for has_authorization?" do
+        permission.add_authorization("read")
+        expect(permission.has_authorisation?("read")).to be true
+        expect(permission.has_authorisation?("write")).to be false
+      end
+
+      it "has remove_authorisation alias for remove_authorization" do
+        permission.add_authorization("read")
+
+        expect {
+          permission.remove_authorisation("read")
+        }.to change { permission.authorizations.count }.by(-1)
+
+        expect(permission.has_authorization?("read")).to be false
+      end
+    end
   end
 end

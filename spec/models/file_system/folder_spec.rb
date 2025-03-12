@@ -208,122 +208,122 @@ module FileSystem
         expect(folder.to_param).to eq("456-special-folder")
       end
     end
-    
+
     describe "ACL associations" do
       let(:folder) { described_class.create!(name: "Test Folder", volume: volume) }
       let(:another_user) { User.create!(name: "Another User", email: "another@example.com") }
-      
+
       it "has many permissions" do
         permission = Permission.create!(folder: folder, subject: user)
-        
+
         expect(folder.permissions).to include(permission)
       end
-      
+
       it "destroys associated permissions when destroyed" do
         folder = described_class.create!(name: "Test Folder", volume: volume)
         Permission.create!(folder: folder, subject: user)
-        
+
         expect { folder.destroy }.to change(Permission, :count).by(-1)
       end
     end
-    
+
     describe "ACL methods" do
       let(:folder) { described_class.create!(name: "Test Folder", volume: volume) }
       let(:another_user) { User.create!(name: "Another User", email: "another@example.com") }
-      
+
       describe "#grant_access_to" do
         it "creates a permission for a subject" do
           expect {
             folder.grant_access_to(user)
           }.to change(Permission, :count).by(1)
-          
+
           expect(folder.accessible_to?(user)).to be true
         end
-        
+
         it "adds authorizations when specified" do
           permission = folder.grant_access_to(user, "read", "write")
-          
+
           expect(permission.has_authorization?("read")).to be true
           expect(permission.has_authorization?("write")).to be true
         end
-        
+
         it "doesn't create duplicate permissions" do
           folder.grant_access_to(user)
-          
+
           expect {
             folder.grant_access_to(user)
           }.not_to change(Permission, :count)
         end
-        
+
         it "returns the permission" do
           permission = folder.grant_access_to(user)
           expect(permission).to be_a(Permission)
         end
       end
-      
+
       describe "#accessible_to?" do
         it "returns true when a permission exists for the subject" do
           folder.grant_access_to(user)
           expect(folder.accessible_to?(user)).to be true
         end
-        
+
         it "returns false when no permission exists for the subject" do
           expect(folder.accessible_to?(user)).to be false
         end
       end
-      
+
       describe "#authorized?" do
         it "returns true when the subject has the authorization" do
           folder.grant_access_to(user, "read")
           expect(folder.authorized?(user, "read")).to be true
         end
-        
+
         it "returns false when the subject doesn't have the authorization" do
           folder.grant_access_to(user)
           expect(folder.authorized?(user, "write")).to be false
         end
-        
+
         it "returns false when the subject has no permission" do
           expect(folder.authorized?(user, "read")).to be false
         end
       end
-      
+
       describe "#revoke_access_from" do
         it "removes all permissions for a subject" do
           folder.grant_access_to(user, "read", "write")
-          
+
           expect {
             folder.revoke_access_from(user)
           }.to change(Permission, :count).by(-1)
-          
+
           expect(folder.accessible_to?(user)).to be false
         end
-        
+
         it "does nothing when no permission exists" do
           expect {
             folder.revoke_access_from(user)
           }.not_to change(Permission, :count)
         end
       end
-      
+
       describe "#revoke_authorization" do
         it "removes a specific authorization" do
           permission = folder.grant_access_to(user, "read", "write")
-          
+
           folder.revoke_authorization(user, "write")
-          
+
           expect(permission.reload.has_authorization?("read")).to be true
           expect(permission.has_authorization?("write")).to be false
         end
-        
+
         it "does nothing when the authorization doesn't exist" do
           permission = folder.grant_access_to(user, "read")
-          
+
           folder.revoke_authorization(user, "write")
-          
+
           expect(permission.reload.has_authorization?("read")).to be true
         end
-        
+
         it "does nothing when the subject has no permission" do
           expect {
             folder.revoke_authorization(user, "read")
@@ -331,19 +331,19 @@ module FileSystem
         end
       end
     end
-    
+
     describe "ACL scopes" do
       let(:folder1) { described_class.create!(name: "Folder 1", volume: volume) }
       let(:folder2) { described_class.create!(name: "Folder 2", volume: volume) }
       let(:folder3) { described_class.create!(name: "Folder 3", volume: volume) }
       let(:another_user) { User.create!(name: "Another User", email: "another@example.com") }
-      
+
       before do
         folder1.grant_access_to(user, "read")
         folder2.grant_access_to(user, "read", "write")
         folder3.grant_access_to(another_user, "read")
       end
-      
+
       describe ".visible_to" do
         it "returns folders where the subject has any permission" do
           folders = described_class.visible_to(user)
@@ -351,14 +351,14 @@ module FileSystem
           expect(folders).not_to include(folder3)
           expect(folders.count).to eq(2)
         end
-        
+
         it "returns an empty relation when no folders are accessible" do
           new_user = User.create!(name: "New User", email: "new@example.com")
           folders = described_class.visible_to(new_user)
           expect(folders).to be_empty
         end
       end
-      
+
       describe ".authorized_for" do
         it "returns folders where the subject has a specific authorization" do
           # Only folder2 has write permission for user
@@ -367,10 +367,52 @@ module FileSystem
           expect(folders).not_to include(folder1, folder3)
           expect(folders.count).to eq(1)
         end
-        
+
         it "returns an empty relation when no folders have the authorization" do
           folders = described_class.authorized_for(user, "admin")
           expect(folders).to be_empty
+        end
+      end
+    end
+
+    describe "UK spelling aliases" do
+      let(:folder) { described_class.create!(name: "Test Folder", volume: volume) }
+
+      describe "permissions and associations" do
+        it "provides permission_authorisations alias" do
+          folder.grant_access_to(user, "read")
+          expect(folder.permission_authorisations).to eq(folder.permission_authorizations)
+        end
+      end
+
+      describe "scope aliases" do
+        it "provides authorised_for alias for authorized_for" do
+          folder.grant_access_to(user, "read")
+
+          by_us = described_class.authorised_for(user, "read")
+          by_uk = described_class.authorized_for(user, "read")
+
+          expect(by_us).to eq(by_uk)
+          expect(by_us).to include(folder)
+        end
+      end
+
+      describe "method aliases" do
+        it "provides authorised? alias for authorized?" do
+          folder.grant_access_to(user, "read")
+
+          expect(folder.authorised?(user, "read")).to eq(folder.authorized?(user, "read"))
+          expect(folder.authorised?(user, "read")).to be true
+          expect(folder.authorised?(user, "write")).to be false
+        end
+
+        it "provides revoke_authorisation alias for revoke_authorization" do
+          permission = folder.grant_access_to(user, "read", "write")
+
+          folder.revoke_authorisation(user, "write")
+
+          expect(permission.reload.has_authorization?("read")).to be true
+          expect(permission.has_authorization?("write")).to be false
         end
       end
     end

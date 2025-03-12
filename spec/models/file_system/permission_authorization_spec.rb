@@ -28,5 +28,11 @@ module FileSystem
         expect(permission_auth.authorization).to eq(authorization)
       end
     end
+
+    describe "UK spelling aliases" do
+      it "provides PermissionAuthorisation as an alias for PermissionAuthorization" do
+        expect(FileSystem::PermissionAuthorisation).to eq(FileSystem::PermissionAuthorization)
+      end
+    end
   end
 end

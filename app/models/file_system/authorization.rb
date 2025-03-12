@@ -12,4 +12,7 @@ module FileSystem
     SHARE = "share"
     ADMIN = "admin"
   end
+
+  # UK spelling alias
+  Authorisation = Authorization
 end

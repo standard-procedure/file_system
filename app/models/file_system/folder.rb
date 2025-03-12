@@ -9,6 +9,7 @@ module FileSystem
       association_foreign_key: "file_system_item_id"
     has_many :permissions, dependent: :destroy
     has_many :permission_authorizations, through: :permissions
+    has_many :permission_authorisations, through: :permissions, class_name: "PermissionAuthorization"
 
     normalizes :name, with: ->(name) { name.to_s.strip }
     validates :name, presence: true, uniqueness: {case_sensitive: false, scope: [:volume, :status, :parent]}
@@ -37,6 +38,9 @@ module FileSystem
         .distinct
     end
 
+    # UK spelling alias for scope
+    singleton_class.send(:alias_method, :authorised_for, :authorized_for)
+
     # Check if a folder is accessible to a subject
     def accessible_to?(subject)
       permissions.exists?(subject: subject)
@@ -47,6 +51,9 @@ module FileSystem
       permission = permissions.find_by(subject: subject)
       permission&.has_authorization?(auth_name) || false
     end
+
+    # UK spelling alias
+    alias_method :authorised?, :authorized?
 
     # Grant permission to a subject with optional authorizations
     def grant_access_to(subject, *auth_names)
@@ -65,5 +72,8 @@ module FileSystem
       permission = permissions.find_by(subject: subject)
       permission&.remove_authorization(auth_name)
     end
+
+    # UK spelling alias
+    alias_method :revoke_authorisation, :revoke_authorization
   end
 end

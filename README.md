@@ -109,6 +109,30 @@ subfolder.authorized?(current_user, "write")  # => true
 subfolder.revoke_access_from(current_user)
 ```
 
+### UK/US Spelling Support
+
+The library supports both UK and US spelling variations for "authorize/authorise" and "authorization/authorisation":
+
+```ruby
+# US spelling
+folder.authorized?(user, "read")
+folder.revoke_authorization(user, "write")
+permission.has_authorization?("admin")
+permission.add_authorization("delete")
+
+# UK spelling (identical functionality)
+folder.authorised?(user, "read")
+folder.revoke_authorisation(user, "write")
+permission.has_authorisation?("admin")
+permission.add_authorisation("delete")
+
+# Class names also have aliases
+FileSystem::Authorization
+FileSystem::Authorisation
+FileSystem::PermissionAuthorization
+FileSystem::PermissionAuthorisation
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome.
