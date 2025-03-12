@@ -4,7 +4,7 @@ Gem::Specification.new do |spec|
   spec.version = FileSystem::VERSION
   spec.authors = ["Rahoul Baruah"]
   spec.email = ["rahoulb@echodek.co"]
-  spec.homepage = "https://theartandscienceofruby,com/"
+  spec.homepage = "https://theartandscienceofruby.com/"
   spec.summary = "Standard Procedure: FileSystem"
   spec.description = "FileSystem"
   spec.license = "LGPL"
