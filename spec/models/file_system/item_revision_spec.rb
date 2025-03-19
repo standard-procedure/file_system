@@ -6,6 +6,7 @@ module FileSystem
     let(:item) { Item.create!(volume: volume) }
     let(:user) { User.create!(name: "Test User", email: "test@example.com") }
     let(:document) { Document.create!(title: "Test Document", content: "Test Content") }
+    let(:car) { Car.create!(make: "Subaru", model: "Impreza WRX") }
 
     describe "associations" do
       it "belongs to an item" do
@@ -98,7 +99,18 @@ module FileSystem
           name: ""
         )
         expect(revision).not_to be_valid
-        expect(revision.errors[:name]).to include("can't be blank")
+        expect(revision.errors).to include :name
+      end
+
+      it "requires the contents to be of type FileSystem::Contents" do
+        revision = described_class.new(
+          item: item,
+          creator: user,
+          contents: car,
+          name: "my car"
+        )
+        expect(revision).not_to be_valid
+        expect(revision.errors).to include :contents
       end
     end
 

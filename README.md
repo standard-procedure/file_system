@@ -65,35 +65,34 @@ subfolder = root_folder.children.create(name: "Documents")
 
 ```ruby
 # Create an item with a revision
-document = FileSystem::Item.new(name: "Important Document")
-document.revision_attributes = { 
-  contents: current_user,  # polymorphic association
-  number: 1,
-  metadata: { importance: "high" }
-}
-document.creator = current_user  # polymorphic association
-document.save
+uploaded_file = MyApp::UploadedFile.find(123)
+document = FileSystem::Item.create!(name: "Important Document", user: Current.user)
+document.revisions.create!(creator: Current.user, contents: uploaded_file, metadata: { classification: "Top Secret"})
 
 # Add the item to a folder
 subfolder.items << document
+
+# The same item can be in multiple folders - allowing for symlinks
+other_folder = volume.folders.create!(name: "Important stuff")
+other_folder.items << document
+
+document.folders.size # => 2
 
 # Get the current revision
 current_revision = document.current
 
 # Add a comment
-current_revision.comments.create(
-  body: "This looks great!",
-  creator: current_user
-)
+current_revision.comments.create(body: "This looks great!", creator: Current.user)
 
 # Create a new revision
-document.revision_attributes = {
-  contents: current_user,
-  number: document.next_revision_number,
-  metadata: { importance: "medium" }
-}
-document.save
+new_version_of_uploaded_file = MyApp::UploadedFile.find(124)
+document.revisions.create!(creator: Current.user, contents: new_version_of_uploaded_file, metadata: { classification: "For your eyes only"})
+
+document.current.contents # => new_version_of_uploaded_file
+document.revisions.last.contents # => uploaded_file
 ```
+
+`FileSystem::ItemRevision`s have a polymorphic `contents` association - so you can link each revision with any other model in your application.  However, the contents must include the `FileSystem::Contents` module.  This ensures that revisions are destroyed if their contents are destroyed.  
 
 ### Access Control
 
@@ -111,7 +110,7 @@ subfolder.revoke_access_from(current_user)
 
 ### UK/US Spelling Support
 
-The library supports both UK and US spelling variations for "authorize/authorise" and "authorization/authorisation":
+I'm from the UK, so typing "authorize" annoys me.  So, just because, there are aliases for UK spellings (in most cases).
 
 ```ruby
 # US spelling
