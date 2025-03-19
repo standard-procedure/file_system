@@ -9,6 +9,8 @@ module FileSystem
     belongs_to :volume
     belongs_to :parent, class_name: "FileSystem::Folder", optional: true, inverse_of: :sub_folders
     has_many :sub_folders, -> { active.order(:name) }, foreign_key: "parent_id", class_name: "FileSystem::Folder", inverse_of: :parent
+    before_validation :set_volume, if: -> { parent.present? && volume.nil? }
+
     has_and_belongs_to_many :items, -> { active.order("created_at desc") }, join_table: "file_system_folders_items", foreign_key: "file_system_folder_id", association_foreign_key: "file_system_item_id"
     has_many :permissions, dependent: :destroy
     has_many :permission_authorizations, through: :permissions
@@ -46,5 +48,7 @@ module FileSystem
     alias_method :revoke_authorisation, :revoke_authorization
 
     has_many :_sub_folders, foreign_key: "parent_id", class_name: "FileSystem::Folder", dependent: :destroy
+
+    private def set_volume = self.volume = parent&.volume
   end
 end

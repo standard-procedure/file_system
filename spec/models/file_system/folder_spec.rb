@@ -18,6 +18,13 @@ module FileSystem
         expect(child.parent).to eq(parent)
       end
 
+      it "automatically sets its volume if it has a parent and no volume is supplied" do
+        parent = described_class.create!(name: "Parent", volume: volume)
+        child = described_class.create!(name: "Child", parent: parent)
+
+        expect(child.volume).to eq volume
+      end
+
       it "can have multiple sub folders" do
         parent = described_class.create!(name: "Parent", volume: volume)
         child1 = described_class.create!(name: "Child 1", volume: volume, parent: parent)
