@@ -25,16 +25,6 @@ module FileSystem
       end
     end
 
-    describe "constants" do
-      it "defines common authorization types" do
-        expect(described_class::READ).to eq("read")
-        expect(described_class::WRITE).to eq("write")
-        expect(described_class::DELETE).to eq("delete")
-        expect(described_class::SHARE).to eq("share")
-        expect(described_class::ADMIN).to eq("admin")
-      end
-    end
-
     describe "UK spelling aliases" do
       it "provides Authorisation as an alias for Authorization" do
         expect(FileSystem::Authorisation).to eq(FileSystem::Authorization)

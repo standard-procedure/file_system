@@ -13,7 +13,7 @@ module FileSystem
         described_class.create!(permission: permission, authorization: authorization)
         duplicate = described_class.new(permission: permission, authorization: authorization)
         expect(duplicate).not_to be_valid
-        expect(duplicate.errors[:permission_id]).to include("has already been taken")
+        expect(duplicate.errors[:permission]).to include("has already been taken")
       end
     end
 

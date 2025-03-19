@@ -4,15 +4,7 @@ module FileSystem
     has_many :permissions, through: :permission_authorizations
 
     validates :name, presence: true, uniqueness: true
-
-    # Common authorization types
-    READ = "read"
-    WRITE = "write"
-    DELETE = "delete"
-    SHARE = "share"
-    ADMIN = "admin"
   end
 
-  # UK spelling alias
   Authorisation = Authorization
 end
